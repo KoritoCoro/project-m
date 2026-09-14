@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<title>Project M — Mi progreso</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f5f5;color:#171717;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.app{max-width:760px;margin:auto;padding:20px 16px 50px}.hero{background:#171717;color:white;border-radius:24px;padding:24px;margin-bottom:16px}
+h1{font-size:30px;margin:0 0 6px}.sub{opacity:.72}.card{background:white;border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 2px 12px #00000008}
+h2{font-size:19px;margin:0 0 14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#f4f4f4;border-radius:14px;padding:13px}.label{font-size:12px;color:#666}.value{font-size:22px;font-weight:700;margin-top:4px}
+input,button{font:inherit}input{width:100%;padding:11px;border:1px solid #ddd;border-radius:10px;margin-top:5px}
+label{font-size:13px;color:#555}.field{margin-bottom:11px}button{border:0;border-radius:12px;padding:12px 15px;background:#171717;color:#fff;font-weight:650;cursor:pointer}
+.secondary{background:#eee;color:#171717}.row{display:flex;gap:8px;flex-wrap:wrap}.goal{padding:12px 0;border-bottom:1px solid #eee}.goal:last-child{border:0}.goal input{width:auto;margin-right:8px}
+.progress{height:10px;background:#e8e8e8;border-radius:99px;overflow:hidden}.bar{height:100%;width:0;background:#171717}
+.small{font-size:12px;color:#777}.fold-summary{list-style:none;cursor:pointer;font-size:19px;font-weight:700;display:flex;justify-content:space-between;align-items:center}.fold-summary::-webkit-details-marker{display:none}.chevron{font-size:22px;color:#777;transition:transform .15s ease}details[open] .chevron{transform:rotate(180deg)}.danger{color:#a22}.entry{border-top:1px solid #eee;padding:13px 0}.entry:first-child{border-top:0}
+@media(min-width:600px){.grid.four{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="hero">
+    <div class="small" style="color:#aaa">TU PROYECTO DE TRANSFORMACIÓN</div>
+    <h1>Project M</h1>
+    <div class="sub">No se trata solo de perder peso. Se trata de recuperar cosas que quieres hacer.</div>
+  </section>
+
+
+
+  <section class="card">
+    <h2>🍽️ Registro diario</h2>
+    <div class="small">No hace falta contar calorías de momento. Apunta qué has comido para poder relacionarlo con tus medidas y entender qué está funcionando.</div>
+    <div class="field" style="margin-top:14px"><label>Fecha<input id="mealDate" type="date"></label></div>
+    <div class="grid">
+      <div class="field"><label>Desayuno<textarea id="breakfast" rows="3" style="width:100%;margin-top:5px;border:1px solid #ddd;border-radius:10px;padding:10px;font:inherit"></textarea></label></div>
+      <div class="field"><label>Media mañana<textarea id="midmorning" rows="3" style="width:100%;margin-top:5px;border:1px solid #ddd;border-radius:10px;padding:10px;font:inherit"></textarea></label></div>
+      <div class="field"><label>Comida<textarea id="lunch" rows="3" style="width:100%;margin-top:5px;border:1px solid #ddd;border-radius:10px;padding:10px;font:inherit"></textarea></label></div>
+      <div class="field"><label>Merienda<textarea id="snack" rows="3" style="width:100%;margin-top:5px;border:1px solid #ddd;border-radius:10px;padding:10px;font:inherit"></textarea></label></div>
+      <div class="field"><label>Cena<textarea id="dinner" rows="3" style="width:100%;margin-top:5px;border:1px solid #ddd;border-radius:10px;padding:10px;font:inherit"></textarea></label></div>
+    </div>
+    <div class="field"><label>Vasos de agua 💧<input id="water" type="number" min="0" max="30" step="1" placeholder="Ej. 6"></label></div>
+    <div class="field"><label>Notas del día<textarea id="mealNotes" rows="2" placeholder="Hambre, picoteo, comida fuera, ansiedad, etc." style="width:100%;margin-top:5px;border:1px solid #ddd;border-radius:10px;padding:10px;font:inherit"></textarea></label></div>
+    <button onclick="saveMeal()">Guardar día</button>
+  </section>
+
+  <section class="card">
+    <h2>🥗 Historial diario</h2>
+    <div id="mealHistory"><div class="small">Todavía no hay registros de comidas.</div></div>
+  </section>
+
+  <section class="card">
+    <h2>📊 Resumen de progreso</h2>
+    <div class="grid four">
+      <div class="stat"><div class="label">Peso último registro</div><div class="value" id="currentWeight">—</div></div>
+      <div class="stat"><div class="label">Cambio</div><div class="value" id="weightChange">—</div></div>
+      <div class="stat"><div class="label">Cintura último registro</div><div class="value" id="currentWaist">—</div></div>
+      <div class="stat"><div class="label">Registros</div><div class="value" id="count">0</div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <details id="fortnightlyDetails">
+      <summary class="fold-summary">📏 Registro quincenal <span class="chevron">⌄</span></summary>
+      <div style="margin-top:14px">
+        <div class="small">Cada 15 días. No necesitas hacerlo todos los días: la idea es tener un punto de comparación real para ver la tendencia.</div>
+        <div class="field" style="margin-top:14px"><label>Fecha<input id="date" type="date"></label></div>
+        <div class="grid">
+          <div class="field"><label>Peso (kg)<input id="weight" type="number" step="0.1" inputmode="decimal" placeholder="Ej. 98.0"></label></div>
+          <div class="field"><label>Cintura (cm)<input id="waist" type="number" step="0.1" inputmode="decimal"></label></div>
+          <div class="field"><label>Abdomen (cm)<input id="abdomen" type="number" step="0.1" inputmode="decimal"></label></div>
+          <div class="field"><label>Pecho (cm)<input id="chest" type="number" step="0.1" inputmode="decimal"></label></div>
+          <div class="field"><label>Cadera (cm)<input id="hip" type="number" step="0.1" inputmode="decimal"></label></div>
+          <div class="field"><label>Cuello (cm)<input id="neck" type="number" step="0.1" inputmode="decimal"></label></div>
+          <div class="field"><label>Muslo (cm)<input id="thigh" type="number" step="0.1" inputmode="decimal"></label></div>
+          <div class="field"><label>Brazo (cm)<input id="arm" type="number" step="0.1" inputmode="decimal"></label></div>
+          <div class="field"><label>Camiseta<input id="shirt" type="text" placeholder="Ej. XL"></label></div>
+          <div class="field"><label>Pantalón<input id="pants" type="text" placeholder="Ej. 48"></label></div>
+        </div>
+        <button onclick="saveEntry()">Guardar registro</button>
+      </div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>📋 Historial quincenal</h2>
+    <div id="history"><div class="small">Todavía no hay registros.</div></div>
+  </section>
+
+  <section class="card">
+    <h2>🗓️ Revisión mensual</h2>
+    <div class="small">Cada 15 días medimos. Una vez al mes revisamos cómo te encuentras, qué ha cambiado y qué quieres trabajar el siguiente mes.</div>
+    <div class="field" style="margin-top:14px"><label>¿Cómo me siento?<textarea id="notes" rows="4" style="width:100%;margin-top:5px;border:1px solid #ddd;border-radius:10px;padding:11px;font:inherit"></textarea></label></div>
+    <button class="secondary" onclick="saveNotes()">Guardar reflexión</button>
+  </section>
+
+  <section class="card">
+    <h2>💾 Tus datos</h2>
+    <div class="small">Los datos se guardan en este dispositivo mediante almacenamiento local del navegador. Puedes exportarlos para conservar una copia.</div>
+    <div class="row" style="margin-top:12px"><button class="secondary" onclick="exportData()">Exportar datos</button><button class="secondary" onclick="clearData()">Borrar datos</button></div>
+  </section>
+</div>
+
+<script>
+const today=()=>new Date().toISOString().slice(0,10);
+let data=JSON.parse(localStorage.getItem("projectM")||'{"entries":[],"goals":{},"notes":[],"meals":[]}');
+data.entries=data.entries||[];
+data.meals=data.meals||[];
+data.notes=data.notes||[];
+
+document.getElementById("date").value=today();
+document.getElementById("mealDate").value=today();
+
+function persist(){
+  localStorage.setItem("projectM",JSON.stringify(data));
+  render();
+}
+
+function render(){
+  const e=[...data.entries].sort((a,b)=>a.date.localeCompare(b.date));
+  const meals=[...data.meals].sort((a,b)=>a.mealDate.localeCompare(b.mealDate));
+
+  document.getElementById("count").textContent=e.length;
+
+  if(e.length){
+    const first=e[0], last=e[e.length-1];
+    document.getElementById("currentWeight").textContent=last.weight?last.weight+" kg":"—";
+    document.getElementById("weightChange").textContent=(first.weight&&last.weight)?((Number(last.weight)-Number(first.weight)).toFixed(1))+" kg":"—";
+    document.getElementById("currentWaist").textContent=last.waist?last.waist+" cm":"—";
+
+    document.getElementById("history").innerHTML=[...e].reverse().map((x,ri)=>{
+      const idx=e.length-1-ri;
+      const prev=e[idx-1];
+      const delta=x.weight&&prev&&prev.weight
+        ?` · ${((Number(x.weight)-Number(prev.weight))>0?'+':'')+(Number(x.weight)-Number(prev.weight)).toFixed(1)} kg desde el anterior`
+        :'';
+      return `<div class="entry"><b>${x.date}</b><div style="margin-top:5px">Peso: ${x.weight||'—'} kg · Cintura: ${x.waist||'—'} cm · Abdomen: ${x.abdomen||'—'} cm</div><div class="small">Pecho ${x.chest||'—'} · Cadera ${x.hip||'—'} · Cuello ${x.neck||'—'}${delta}</div><div class="small">Camiseta: ${x.shirt||'—'} · Pantalón: ${x.pants||'—'}</div></div>`;
+    }).join("");
+  } else {
+    document.getElementById("currentWeight").textContent="—";
+    document.getElementById("weightChange").textContent="—";
+    document.getElementById("currentWaist").textContent="—";
+    document.getElementById("history").innerHTML='<div class="small">Todavía no hay registros.</div>';
+  }
+
+  if(meals.length){
+    document.getElementById("mealHistory").innerHTML=[...meals].reverse().map(x=>{
+      const parts=[];
+      if(x.breakfast) parts.push(`<b>Desayuno:</b> ${escapeHtml(x.breakfast)}`);
+      if(x.midmorning) parts.push(`<b>Media mañana:</b> ${escapeHtml(x.midmorning)}`);
+      if(x.lunch) parts.push(`<b>Comida:</b> ${escapeHtml(x.lunch)}`);
+      if(x.snack) parts.push(`<b>Merienda:</b> ${escapeHtml(x.snack)}`);
+      if(x.dinner) parts.push(`<b>Cena:</b> ${escapeHtml(x.dinner)}`);
+      if(x.water) parts.push(`<b>Agua:</b> ${escapeHtml(x.water)} vasos`);
+      if(x.mealNotes) parts.push(`<span class="small"><b>Notas:</b> ${escapeHtml(x.mealNotes)}</span>`);
+      return `<div class="entry"><b>${x.mealDate}</b><div style="margin-top:7px;line-height:1.55">${parts.join("<br>")||'<span class="small">Sin comidas anotadas.</span>'}</div></div>`;
+    }).join("");
+  } else {
+    document.getElementById("mealHistory").innerHTML='<div class="small">Todavía no hay registros de comidas.</div>';
+  }
+}
+
+function escapeHtml(value){
+  return String(value).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+
+function saveEntry(){
+  const ids=["date","weight","waist","abdomen","chest","hip","neck","thigh","arm","shirt","pants"];
+  const x={};
+  ids.forEach(id=>x[id]=document.getElementById(id).value.trim());
+  if(!x.date){alert("Añade una fecha.");return}
+
+  const existing=data.entries.findIndex(e=>e.date===x.date);
+  if(existing>=0) data.entries[existing]=x;
+  else data.entries.push(x);
+
+  data.entries.sort((a,b)=>a.date.localeCompare(b.date));
+  persist();
+
+  ["weight","waist","abdomen","chest","hip","neck","thigh","arm","shirt","pants"].forEach(id=>document.getElementById(id).value="");
+  alert("Registro guardado.");
+}
+
+function saveMeal(){
+  const ids=["mealDate","breakfast","midmorning","lunch","snack","dinner","water","mealNotes"];
+  const x={};
+  ids.forEach(id=>x[id]=document.getElementById(id).value.trim());
+  if(!x.mealDate){alert("Añade una fecha.");return}
+
+  const existing=data.meals.findIndex(m=>m.mealDate===x.mealDate);
+  if(existing>=0) data.meals[existing]=x;
+  else data.meals.push(x);
+
+  data.meals.sort((a,b)=>a.mealDate.localeCompare(b.mealDate));
+  persist();
+
+  ["breakfast","midmorning","lunch","snack","dinner","water","mealNotes"].forEach(id=>document.getElementById(id).value="");
+  alert("Día de alimentación guardado.");
+}
+
+function saveNotes(){
+  const n=document.getElementById("notes").value.trim();
+  if(!n)return;
+  data.notes.push({date:today(),text:n});
+  persist();
+  document.getElementById("notes").value="";
+  alert("Reflexión guardada.");
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="project-m-datos.json";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+function clearData(){
+  if(confirm("¿Borrar todos los registros de Project M?")){
+    localStorage.removeItem("projectM");
+    data={entries:[],goals:{},notes:[],meals:[]};
+    render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
